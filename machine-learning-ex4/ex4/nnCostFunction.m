@@ -61,50 +61,40 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
-X = [ones(m, 1) X];
-a1 = sigmoid(X*Theta1');
-a1 = [ones(size(a1, 1), 1) a1];
-hipothesis = sigmoid(a1 * Theta2');
+a1 = [ones(m, 1) X]; % 5000x401
+z2 = a1*Theta1';
+a2 = sigmoid(z2); % 5000x25
+a2 = [ones(size(a2, 1), 1) a2]; % 5000x25
+z3 = a2 * Theta2';
+a3 = sigmoid(z3); % 5000x10
 y_k = zeros(m, num_labels);
 
-for r = 1:m
-  y_k(r,:) = [1:num_labels] == y(r, 1);
-endfor
+y_k = [1:num_labels] == y;
+
 regTheta1 = Theta1;
 regTheta1(:, 1) = 0;
 
 regTheta2 = Theta2;
 regTheta2(:, 1) = 0;
 
-Js = (log(hipothesis) * (-y_k)' - log(1 - hipothesis) * (1 - y_k')) .* eye(m, m);
-J = sum(Js(:)) / m + (lambda * (sum((regTheta1 .^ 2)(:)) + sum((regTheta2 .^ 2)(:))) / (2 * m));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Js = (log(a3) * (-y_k)' - log(1 - a3) * (1 - y_k'));
+J = trace(Js) / m + (lambda * (sum((regTheta1 .^ 2)(:)) + sum((regTheta2 .^ 2)(:))) / (2 * m));
 
 % -------------------------------------------------------------
+d3 = a3 - y_k;
+d2 = d3 *  Theta2(:, 2:end) .* sigmoidGradient(z2);
 
+Delta2 = d3' * a2;
+D2Reg = lambda .* Theta2 ./ m;
+D2Reg(:, 1) = 0;
+Theta2_grad = Delta2 ./ m + D2Reg;
+Delta1 = d2' * a1;
+D1Reg = lambda .* Theta1 ./ m;
+D1Reg(:, 1) = 0;
+Theta1_grad = Delta1 ./ m + D1Reg;
 % =========================================================================
 
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
-
 
 end
